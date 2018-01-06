@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en"
+<head>
+<meta charset="utf-8" />
+<script type="text/javascript" src="markovflags.js"> </script>
+<script type="text/javascript">
+
+function updateFlag() {
+    var canvasEle = document.getElementById("flag")
+    var ctx = canvasEle.getContext("2d");
+    ctx.clearRect(0, 0, canvasEle.width, canvasEle.height);
+
+    renderFlag(canvasEle, makeConfig());
+}
+
+function makeRandomFlag() {
+    var canvasEle = document.getElementById("flag")
+    var ctx = canvasEle.getContext("2d");
+    ctx.clearRect(0, 0, canvasEle.width, canvasEle.height);
+
+    renderFlag(canvasEle, setConfig(makeRandomFlagConfig()));
+}
+
+function setConfig(flagConfig) {
+    document.getElementById("aspectRatioId").value = flagConfig.dimensions.aspectRatio;
+    document.getElementById("aspectRatioId").value = flagConfig.dimensions.aspectRatio;
+
+    document.getElementById("swallowtailPointStartId").value = flagConfig.swallowtails.start;
+    document.getElementById("swallowtailPointVerticalsId").value = flagConfig.swallowtails.points;
+    document.getElementById("tailControlId").value = flagConfig.swallowtails.controls;
+
+    document.getElementById("stripeOrientId").value = flagConfig.stripes.orient;
+    document.getElementById("stripeWidthCsvId").value = flagConfig.stripes.points;
+    document.getElementById("stripeColorCsvId").value = flagConfig.stripes.colors;
+
+    document.getElementById("cantonModeId").value = flagConfig.canton.mode;
+    document.getElementById("cantonColorId").value = flagConfig.canton.color;
+    document.getElementById("chargeId").value = flagConfig.charge;
+
+    return flagConfig;
+}
+
+function makeConfig() {
+    var stripeCorners = document.getElementById("stripeWidthCsvId").value.split(",");
+    var swallowtailPointVerticals = document.getElementById("swallowtailPointStartId").value;
+    if (swallowtailPointVerticals[0] === "") {
+        swallowtailPointVerticals = stripeCorners;
+        document.getElementById("swallowtailPointVerticalsId").value = stripeCorners;
+    }
+
+    var tailControls = document.getElementById("tailControlId").value.split(",");
+    if (tailControls[0] == "") {
+        if (swallowtailPointVerticals.length == 1) {
+            tailControls = ["o"];
+        } else {
+            var x = tailControls.length
+            for (var i = x; i < swallowtailPointVerticals.length; i++) {
+                tailControls.push("o");
+            }
+        }
+    }
+
+    return {
+        dimensions: {
+            heightRatio: 0.9,
+            aspectRatio: document.getElementById("aspectRatioId").value,
+        },
+
+        swallowtails: {
+            start: swallowtailPointVerticals,
+            points: document.getElementById("swallowtailPointVerticalsId").value.split(","),
+            controls: tailControls,
+        },
+
+        stripes: {
+            orient: document.getElementById("stripeOrientId").value,
+            points: stripeCorners,
+            colors: document.getElementById("stripeColorCsvId").value.split(","),
+        },
+
+        canton: {
+            mode: document.getElementById("cantonModeId").value,
+            color: document.getElementById("cantonColorId").value,
+        },
+
+        charge: document.getElementById("chargeId").value,
+    }
+}
+</script>
+<style type="text/css">
+    canvas {
+        border: solid red 1px;
+    }
+</style>
+</head>
+<body onload="updateFlag();">
+<h1>Generate A Flag</h1>
+Being inspired from the flag generator on
+<a href="http://www.learnedleague.com/">Learned League</a>, and
+<a href="http://politiscales.la-commune.net/en_US/quiz/">PolitiScacles</a>,
+I decided to make my own.
+
+Flags are generated from a markov model that chooses, the number and
+orientation of stripes, canton presence (and shape), and colors. Model were
+derived from examining world flags. If the flag will be charged, the choice
+of charge is uniformally random.
+
+Things To Do:
+<ul>
+    <li>Ordinary crossess, saltires, and scandinavian crosses.</li>
+    <li>Change from using font glyphs to SVGs for charges.</li>
+    <li>Smarter color choice when color charges on stripes.</li>
+    <li>Multiple charges.</li>
+</ul>
+
+<canvas id="flag" height="500" width="1000">
+  Your browser needs to support canvas for this to work!
+</canvas>
+
+
+<form id="debugForm">
+    <button type="button" onclick="makeRandomFlag();">Random Flag</button>
+
+    <fieldset>
+        <legend>Shape</legend>
+        <label for="aspectRatio">aspect ratio</label>
+        <input type="text" name="aspectRatio" id="aspectRatioId" value="2.0" />
+        <br/>
+
+        <label for="swallowtailPointStart">swallowtail start ratio</label>
+        <input type="text" name="swallowtailPointStart" id="swallowtailPointStartId" value="0.5" />
+        <br/>
+
+        <label for="swallowtailPointVerticals">swallowtail point vertical ratio csv</label>
+        <input type="text" name="swallowtailPointVerticals" id="swallowtailPointVerticalsId" value="1.0" />
+        <br/>
+
+        <label for="tailControl">swallow tail stripe control (c = center, i = inside, o = outside, t = top, b = bottom)</label>
+        <input type="text" name="tailControl" id="tailControlId" value="o"/>
+        <br/>
+    </fieldset>
+
+    <fieldset>
+        <legend>Background Stripes</legend>
+        <label for="stripeOrient">stripe orientation</label>
+        <select name="stripeOrient" id="stripeOrientId">
+            <option value="horizontal" selected>horizontal</choice>
+            <option value="vertical">vertical</choice>
+            <option value="diagonal" >diagonal</choice>
+        </select>
+        <br/>
+
+        <label for="stripeColorCsv">color csv</label>
+        <input type="text" name="stripeColorCsv" id="stripeColorCsvId" value="red,blue,green,yellow" />
+        <br/>
+
+        <label for="stripeWidthCsv">width ratio csv</label>
+        <input type="text" name="stripeWidthCsv" id="stripeWidthCsvId" value="0.25,0.5,0.75,1.0" />
+        <br/>
+    </fieldset>
+
+    <fieldset>
+        <legend>Canton</legend>
+        <label for="cantonMode">canton</label>
+        <select name="cantonMode" id="cantonModeId">
+            <option value="none" selected>none</choice>
+            <option value="rectangle">rectangle</choice>
+            <option value="square">square</choice>
+            <option value="bar">bar</choice>
+            <option value="equi triangle">equi triangle</choice>
+            <option value="iso triangle">iso triangle</choice>
+        </select>
+        <label for="cantonColor">color</label>
+        <input type="text" name="cantonColor" id="cantonColorId" value="black" />
+        <br/>
+    </fieldset>
+
+    <label for="charge">Charge</label>
+    <select name="charge" id="chargeId">
+        <option value="">NONE</option>
+        <option value="☀">☀ sun</option>
+        <option value="⎈">⎈ six-pointed star</option>
+        <option value="⬤">⬤ circle</option>
+        <option value="★">★ five-pointed star</option>
+        <option value="☗">☗ shogi piece</option>
+        <option value="☽︎">☽︎ moon</option>
+        <option value="☠">☠ skull and crossbones</option>
+        <option value="☭">☭ hammer and sickle</option>
+        <option value="☯">☯ yin-yang</option>
+        <option value="☬">☬ kkhanda</option>
+        <option value="☫">farsi symbol</option>
+        <option value="☨">☨ cross of lorraine</option>
+        <option value="☩">☩ cross of jerusalem</option>
+        <option value="♚">♚ king</option>
+        <option value="♛">♛ queen</option>
+        <option value="♜">♜ rook</option>
+        <option value="♞">♞ knight</option>
+        <option value="⚒">⚒ hammer and pick</option>
+        <option value="⚓">⚓ anchor</option>
+        <option value="⚔">⚔ crossed swords</option>
+        <option value="⚙">⚙ gear</option>
+        <option value="⚛">⚛ atom</option>
+        <option value="⚜">⚜ fleur de lis</option>
+        <option value="⚡">⚡ lightning</option>
+        <option value="✠">✠ maltese cross</option>
+        <option value="✡">✡ star of david</option>
+        <option value="✝">✝ latin cross</option>
+        <option value="✬">✬ textured star</option>
+        <option value="✯">✯ pinwheel star</option>
+        <option value="✸">✸ eight-pointed star</option>
+        <option value="❄">❄ snowflake</option>
+        <option value="❧">❧ right fleuron</option>
+        <option value="❦">❦ down fleuron</option>
+    </select>
+
+    <br><button type="button" onclick="updateFlag();">redraw</button>
+</form>
+</body>
+</html>
