@@ -1,0 +1,3 @@
+[submodule "markovflags"]
+	path = markovflags
+	url = https://github.com/jonathankoren/markovflags.git
